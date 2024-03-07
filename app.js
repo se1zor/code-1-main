@@ -73,7 +73,6 @@ app.post('/admin/savebook', (req, res)=> {
 
 app.delete('/admin/remove/:id', (req, res)=>{
     const data = req.params 
-
     const filter = {
         "_id" : new ObjectId(data.id)
     }
