@@ -1,6 +1,6 @@
 import express from 'express'
 import{PORT, MongoDBURL} from './config.js'
-import { MongoClient, ServerApiVersion } from "mongodb"
+import { MongoClient, ObjectId, ServerApiVersion } from "mongodb"
 const app = express()
 
 app.use(express.json()) //converts any incoming data into json
@@ -30,14 +30,28 @@ app.get('/', (req, res) => {
 })
 
 app.get('/shop', (req, res) => {
-    return res.status(200).send("Welcome to the shop!!")
+    //route to show all books
+    mybooks.find().toArray()
+    .then(response=>{
+        return res.status(200).send(response)
+    })
 })
 app.get('/shop/:id', (req, res) => { //route/page on the server/ tab
     const data = req.params
-    return res.status(200).send(`<a href='/'> Your Data : ${data.id}</a>`)
+    //route to show selected book
+    
+    const filter = {
+        "_id" : new ObjectId(data.id)
+    }
+    mybooks.findOne(filter)
+    .then(response => {
+        return res.status(300).send(response)
+    })
+    .catch(err=>console.log(err))
 })
 
-app.post('/savebook', (req, res)=> {
+app.post('/admin/savebook', (req, res)=> {
+    //route to add a book 
     const data = req.body
     if(!data.title)
     return res.status(400).send("no tittles found")
@@ -55,4 +69,38 @@ app.post('/savebook', (req, res)=> {
      })
 
     return res.status(201).send(JSON.stringify(data))
+})
+
+app.delete('/admin/remove/:id', (req, res)=>{
+    const data = req.params 
+
+    const filter = {
+        "_id" : new ObjectId(data.id)
+    }
+    mybooks.deleteOne(filter)
+    .then(response => {
+        return res.status(300).send(response)
+    })
+    .catch(err=>console.log(err))
+})
+
+app.put('/admin/update/:id/', (req, res)=>{
+    const data = req.params
+    const docdata = req.body
+
+    const filter ={
+        "_id":  new ObjectId(data.id)
+    }
+
+    const updoc = {
+        $set:{
+            ...docdata
+        }
+    }
+    
+    mybooks.updateOne(filter, updoc)
+    .then(response =>{
+        res.status(200).send(response)
+    })
+    .catch(err=>console.log(err))
 })
